@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SismoPaz - Framework Base y Rutas + UI Kit</title>
+    
+    <style>
+        /* =========================================================
+           1. VARIABLES GLOBALES CSS (Single Source of Truth)
+           ========================================================= */
+        :root {
+            /* Tema Moderno: Zinc + Naranja */
+            --bg-app: #F4F4F5;          
+            --surface: #FFFFFF;         
+            --border: #E4E4E7;          
+            
+            --text-title: #18181B;      
+            --text-body: #27272A;       
+            --text-muted: #71717A;      
+            
+            --brand-primary: #18181B;   /* Zinc 900 */
+            --brand-hover: #27272A;     /* Zinc 800 */
+            
+            --brand-accent: #F97316;    /* Naranja 500 */
+            --accent-hover: #EA580C;    /* Naranja 600 */
+            
+            /* Estados Semánticos (El Rojo está restringido) */
+            --alert-severe: #E11D48;    /* Rose 600 - SOLO PARA ALERTAS Y EPICENTROS */
+            --alert-warning: #EA580C;   
+            --alert-info: #0284C7;      
+            --success: #059669;         /* AGREGADO: Verde para Validado/Éxito */
+            
+            --radius: 8px; /* Radio estandarizado */
+            --min-touch: 44px; /* AGREGADO: Altura mínima táctil (RNF02) */
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            --sidebar-width: 260px;
+        }
+
+        /* =========================================================
+           2. RESET & BASE (Cumpliendo RNF02)
+           ========================================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-app);
+            color: var(--text-body);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.5rem; }
+        h2 { font-size: 1.125rem; font-weight: 600; color: var(--text-title); margin-bottom: 1rem; }
+        h3 { font-size: 1rem; font-weight: 600; color: var(--text-title); }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* =========================================================
+           3. SISTEMA DE BOTONES ESTRUCTURADOS (UI KIT)
+           ========================================================= */
+        
+        /* Regla Base para todos los botones: Área táctil 44px, Font y Transiciones */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0 1.25rem; min-height: var(--min-touch);
+            font-size: 0.95rem; font-weight: 600; font-family: inherit;
+            border-radius: var(--radius); border: none; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn:focus { outline: none; }
+
+        /* Botón Primario */
+        .btn-primary { background-color: var(--brand-primary); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background-color: var(--brand-hover); }
+        .btn-primary:focus { box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.2); }
+        
+        /* Botón Acento (CTA) */
+        .btn-accent { background-color: var(--brand-accent); color: #fff; }
+        .btn-accent:hover:not(:disabled) { background-color: var(--accent-hover); }
+        .btn-accent:focus { box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25); }
+        
+        /* Botón Secundario (Outline) */
+        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-title); }
+        .btn-outline:hover:not(:disabled) { background-color: var(--bg-app); }
+        .btn-outline:focus { box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.1); }
+
+        /* Botón Destructivo / Alerta (USO RESTRINGIDO) */
+        .btn-severe { background-color: var(--alert-severe); color: #fff; }
+        .btn-severe:hover:not(:disabled) { background-color: #BE123C; /* Rose 700 */ }
+        .btn-severe:focus { box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
+
+        /* AGREGADO: Estado Deshabilitado (Punto 4 del Manual UI) */
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+            background-color: #D4D4D8;
+            color: #71717A;
+            border: none;
+        }
+
+        /* Tarjetas, Inputs y Badges */
+        .card { background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.5rem; }
+        
+        /* AGREGADO/MODIFICADO: Formularios e Inputs (Punto 4) */
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-title); }
+        .form-input { 
+            width: 100%; min-height: var(--min-touch); padding: 0.5rem 1rem; 
+            border: 1px solid var(--border); border-radius: var(--radius); 
+            font-size: 1rem; font-family: inherit; color: var(--text-body); 
+            transition: all 0.2s ease; background-color: #fff;
+        }
+        /* Focus Ring como dicta el manual arquitectónico */
+        .form-input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15); }
+        
+        /* AGREGADO/MODIFICADO: Etiquetas (Badges Semánticos - Punto 4) */
+        .badge { display: inline-flex; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; align-items: center; }
+        .badge-info { background-color: #E0F2FE; color: #0369A1; } /* Revisado */
+        .badge-warning { background-color: #FFEDD5; color: #C2410C; } /* Reporte Pendiente */
+        .badge-severe { background-color: #FFE4E6; color: #BE123C; } /* Alerta Severa */
+        .badge-success { background-color: #D1FAE5; color: #065F46; } /* Sismo Registrado / Validado */
+
+        /* =========================================================
+           4. LAYOUT PRINCIPAL (HEADER, SIDEBAR, MAIN)
+           ========================================================= */
+        .header { background-color: var(--surface); border-bottom: 1px solid var(--border); height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; position: sticky; top: 0; z-index: 50; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--brand-primary); letter-spacing: -0.5px; }
+        .logo span { color: var(--brand-accent); }
+        .header-actions { display: flex; gap: 1rem; align-items: center; }
+        .layout-container { display: flex; flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; }
+        .sidebar { width: var(--sidebar-width); background-color: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; flex-shrink: 0; display: none; }
+        .menu-toggle { display: block; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-title); }
+        
+        @media (min-width: 1024px) {
+            .sidebar { display: block; min-height: calc(100vh - 64px); position: sticky; top: 64px; }
+            .menu-toggle { display: none; }
+        }
+
+        .nav-section { margin-bottom: 2rem; }
+        .nav-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.75rem; letter-spacing: 0.05em; }
+        .nav-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; margin-bottom: 0.25rem; border-radius: var(--radius); font-size: 0.95rem; font-weight: 500; transition: all 0.2s ease; }
+        .nav-item:hover { background-color: var(--bg-app); color: var(--brand-accent); }
+        .nav-item.active { background-color: var(--brand-primary); color: #fff; }
+        .sprint-chip { font-size: 0.65rem; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; }
+        .nav-item.active .sprint-chip { background: rgba(255,255,255,0.2); }
+        .main-content { flex: 1; padding: 1.5rem; width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+        @media (min-width: 1024px) { .main-content { padding: 2rem; } }
+
+        .alert-banner {
+            background-color: var(--alert-severe); color: #fff;
+            padding: 1.25rem 1.5rem; border-radius: var(--radius);
+            display: flex; flex-direction: column; gap: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2);
+        }
+        @media (min-width: 768px) { .alert-banner { flex-direction: row; justify-content: space-between; align-items: center; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="menu-toggle" id="menuBtn">☰</button>
+            <div class="logo">Sismo<span>Paz</span></div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-outline" style="display: none; @media(min-width:600px){display:inline-flex;}">Registrarse (S5)</button>
+            <button class="btn btn-primary">Iniciar Sesión (S5)</button>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        <aside class="sidebar" id="sidebarMenu">
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-title">Acceso Público</div>
+                    <ul>
+                        <li><a href="#" class="nav-item active">Visor Cartográfico <span class="sprint-chip">S1</span></a></li>
+                        <li><a href="#" class="nav-item">Alertas y Evacuación <span class="sprint-chip">S2</span></a></li>
+                        <li><a href="#" class="nav-item">Guías Prevención <span class="sprint-chip">S3</span></a></li>
+                        <li><a href="#" class="nav-item">Directorio Auxilio <span class="sprint-chip">S2</span></a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">Ciudadano Registrado</div>
+                    <ul>
+                        <li><a href="#" class="nav-item">Reportar Percepción <span class="sprint-chip">S4</span></a></li>
+                        <li><a href="#" class="nav-item">Mi Perfil / Zonas <span class="sprint-chip">S5</span></a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">Panel Técnico (Sismólogo)</div>
+                    <ul>
+                        <li><a href="#" class="nav-item">Catálogo Oficial <span class="sprint-chip">S7</span></a></li>
+                        <li><a href="#" class="nav-item">Gestión Alertas <span class="sprint-chip">S2</span></a></li>
+                        <li><a href="#" class="nav-item">Auditoría Ciudadana <span class="sprint-chip">S4</span></a></li>
+                        <li><a href="#" class="nav-item">Reportes Estadísticos <span class="sprint-chip">S6</span></a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- USO DEL COLOR ROJO ESTRICTAMENTE RESTRINGIDO PARA ALERTAS Y EMERGENCIA -->
+            <div class="alert-banner">
+                <div>
+                    <strong style="display: block; font-size: 1.125rem; margin-bottom: 0.25rem;">⚠️ ALERTA SÍSMICA SEVERA</strong>
+                    <span style="opacity: 0.95; font-size: 0.95rem;">Sismo superficial detectado. Evacúe hacia Puntos Seguros. Macrodistritos afectados: Sur, Cotahuma.</span>
+                </div>
+                <!-- El botón sobre fondo rojo utiliza contraste invertido por accesibilidad -->
+                <button class="btn" style="background: white; color: var(--alert-severe);">Ver Puntos de Evacuación</button>
+            </div>
+
+            <div style="margin-bottom: 0.5rem;">
+                <h1>Monitoreo Cartográfico de Sismos</h1>
+                <p style="color: var(--text-muted);">Información sísmica georreferenciada de la ciudad de La Paz (Datum WGS 84).</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; @media(min-width: 1024px){ grid-template-columns: 350px 1fr; }">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    
+                    <div class="card">
+                        <h2>Filtros de Búsqueda</h2>
+                        <div class="form-group">
+                            <label class="form-label">Ubicación (Macrodistrito)</label>
+                            <select class="form-input">
+                                <option>Toda La Paz</option><option>Cotahuma</option><option>Max Paredes</option><option>Sur</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <!-- Botón de acento para la acción importante -->
+                            <button class="btn btn-accent" style="flex: 1;">Filtrar</button>
+                            <!-- Botón outline para la acción secundaria -->
+                            <button class="btn btn-outline" style="flex: 1;">Limpiar</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); background: #FAFAFA;">
+                            <h2 style="margin: 0; font-size: 1rem;">Catálogo Reciente</h2>
+                        </div>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg-app); cursor: pointer; border-left: 4px solid var(--brand-accent);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong style="color: var(--text-title);">Macrodistrito Sur</strong>
+                                    <span class="badge badge-warning">4.2 Mw</span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                                    17 Nov 2026 - 14:15 BOT<br>Profundidad: 45.0 km
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 0; display: flex; flex-direction: column; min-height: 500px;">
+                    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <h2 style="margin: 0; font-size: 1rem;">Mapa Interactivo</h2>
+                        <span class="badge" style="background: var(--border); color: var(--text-body);">EPSG:4326</span>
+                    </div>
+                    <div style="flex: 1; background-color: #E5E7EB; position: relative; display: flex; align-items: center; justify-content: center;">
+                        <div style="text-align: center; color: var(--text-muted);">
+                            <p style="font-weight: 600;">[ API del Mapa Cartográfico ]</p>
+                            <p style="font-size: 0.85rem; max-width: 250px; margin: 0 auto;">(Solo los marcadores en este mapa utilizarán rojo para sismos severos).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGREGADO: CATÁLOGO DE COMPONENTES BASE (UI KIT) INTEGRADO -->
+            <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px dashed var(--border);">
+                <h1>Catálogo de Componentes Base (UI Kit)</h1>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Referencia visual estandarizada para todos los grupos de desarrollo (Sprints 1 al 7).</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <!-- PANEL DE BOTONES -->
+                    <div class="card">
+                        <h2>Sistema de Botones</h2>
+                        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Altura táctil 44px (RNF02) y estados de interacción.</p>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <button class="btn btn-primary">Primario (Navegación)</button>
+                            <button class="btn btn-outline">Secundario (Cancelar)</button>
+                            <button class="btn btn-accent">Acento (Guardar / Filtrar)</button>
+                            <button class="btn" disabled>Deshabilitado</button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL DE FORMULARIOS -->
+                    <div class="card">
+                        <h2>Formularios e Inputs</h2>
+                        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Manejo de Focus Ring y bordes adaptativos.</p>
+                        <div class="form-group">
+                            <label class="form-label">Magnitud (Mw) *</label>
+                            <input type="text" class="form-input" placeholder="Ej. 5.2" value="5.2">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Input Activo (Simulado)</label>
+                            <input type="text" class="form-input" placeholder="Escribiendo..." style="border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15); outline: none;">
+                        </div>
+                    </div>
+
+                    <!-- PANEL DE ETIQUETAS -->
+                    <div class="card">
+                        <h2>Etiquetas Semánticas</h2>
+                        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Identificadores de estados en el catálogo.</p>
+                        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: flex-start;">
+                            <span class="badge badge-success">Sismo Registrado</span>
+                            <span class="badge badge-warning">Reporte Pendiente</span>
+                            <span class="badge badge-severe">Alerta Severa</span>
+                            <span class="badge badge-info">Revisado (Sismólogo)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- FIN AGREGADO -->
+
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('menuBtn').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebarMenu');
+            if (sidebar.style.display === 'block') { sidebar.style.display = 'none'; } 
+            else {
+                sidebar.style.display = 'block'; sidebar.style.position = 'absolute';
+                sidebar.style.height = 'calc(100vh - 64px)'; sidebar.style.zIndex = '40';
+                sidebar.style.boxShadow = '4px 0 15px rgba(0,0,0,0.1)';
+            }
+        });
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                document.getElementById('sidebarMenu').style.display = 'block';
+                document.getElementById('sidebarMenu').style.position = 'sticky';
+                document.getElementById('sidebarMenu').style.boxShadow = 'none';
+            } else { document.getElementById('sidebarMenu').style.display = 'none'; }
+        });
+    </script>
+</body>
+</html>

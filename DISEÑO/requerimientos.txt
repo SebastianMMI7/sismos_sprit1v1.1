@@ -1,0 +1,93 @@
+ ESPECIFICACIÓN DE REQUISITOS FUNCIONALES (RF)
+Sprint 1: Mapa de Sismos y Eventos Geográficos (Grupo 4)
+RF1.01 - Despliegue Cronológico de Eventos Sísmicos:
+•  El sistema debe desplegar un listado interactivo ordenado del sismo más reciente al más antiguo para la región de La Paz.
+•  Debe incluir fecha y hora en Tiempo Universal Coordinado (UTC) y Hora Local de Bolivia (BOT), magnitud calculada, profundidad focal (km) y delimitación por Macrodistrito/Municipio. Incluye paginación en servidor y estado informativo si no existen eventos registrados en una ventana de 24 a 48 horas.
+RF1.02 - Cartografía Georreferenciada de Eventos:
+•  El sistema debe integrar un mapa interactivo georreferenciado bajo datum WGS 84 proyectando los epicentros registrados.
+•  La simbología de los marcadores debe graduarse paramétricamente: diámetro proporcional a la magnitud y gradiente cromático condicionado por la profundidad focal (superficial: 0-30 km, intermedia: 31-70 km, profunda: >70 km). Al hacer clic sobre el marcador, debe desplegar un componente emergente con el resumen del evento.
+RF1.03 - Consulta de Ficha Técnica Individual:
+•  El sistema debe proveer una ficha individual de detalle sismológico para cada evento.
+•  Expondrá magnitud tipificada (M_w o M_l), profundidad del hipocentro (km), coordenadas geográficas (latitud/longitud en grados decimales), hora exacta y distancia epicentral calculada al radio urbano. El mapa contextual de la ficha debe enfocar automáticamente las coordenadas del evento con zoom adaptativo.
+RF1.04 - Búsqueda y Filtrado Espaciotemporal:
+•  El sistema debe permitir la ejecución de consultas combinadas sobre el catálogo histórico y reciente.
+•  Parámetros admitidos: ubicación geográfica (Macrodistrito/Municipio), intervalo de fechas y rango de magnitudes. La visualización en lista y mapa debe responder de forma asíncrona y reactiva, contando con una acción de restablecimiento de filtros.
+Sprint 2: Puntos de Evacuación, Alertas y Notificaciones (Grupo 2)
+RF2.01 - Visualización Pública de Alertas Sísmicas Activas:
+•  El sistema debe desplegar las alertas sísmicas activas de La Paz en la página principal, accesibles de forma pública sin requerir autenticación.
+•  Cada alerta informará: nivel de gravedad (Informativa, Moderada o Severa), mensaje oficial de contingencia, fecha/hora de emisión y cobertura geográfica (Macrodistritos involucrados o cobertura municipal global). Las alertas cerradas deben removerse dinámicamente de la vista pública.
+RF2.02 - Administración y Ciclo de Vida de Alertas:
+•  El sistema debe permitir exclusivamente al usuario con rol Sismólogo registrar, consultar, modificar y cerrar alertas sísmicas para La Paz.
+•  Al crearse, la alerta se asienta con fecha/hora del sistema, estado "Activa" y macrodistritos seleccionados. Solo las alertas en estado "Activa" admitirán edición. Una vez que una alerta pasa a estado "Cerrada", el sistema bloqueará su modificación o eliminación, manteniendo el registro histórico inmutable.
+RF2.03 - Suscripción y Notificaciones Zonales:
+•  El sistema debe permitir al Ciudadano Registrado suscribirse a uno o varios macrodistritos para recibir notificaciones internas sobre situaciones de emergencia.
+•  El motor de alertas enviará notificaciones cuando se emita una alerta en las zonas suscritas, cuando se modifique su gravedad, cuando se expanda el alcance geográfico o cuando la alerta sea declarada como "Cerrada". La plataforma proveerá un centro de notificaciones con control de lectura (leída/no leída).
+RF2.04 - Directorio Telefónico de Emergencias:
+•  El sistema debe exponer públicamente la nómina institucional de entidades de primera respuesta de la ciudad de La Paz.
+•  Desplegará denominación institucional, área de soporte funcional y enlace de enlace telefónico mediante protocolo tel:.
+RF2.05 - Gestión y Georreferenciación de Puntos de Evacuación:
+•  El sistema debe permitir al Administrador registrar, actualizar y desactivar zonas de seguridad y puntos de evacuación de La Paz, consignando nombre, macrodistrito, dirección, coordenadas geográficas, capacidad estimada y estado de disponibilidad.
+•  Los ciudadanos y el público en general podrán consultar libremente los puntos disponibles a través de un mapa interactivo sin iniciar sesión.
+Sprint 3: Prevención y Difusión (Grupo 3)
+RF3.01 - Guías Estructuradas de Seguridad y Mitigación:
+•  El sistema debe estructurar contenidos instructivos de protección civil en tres etapas cronológicas secuenciales: Antes, Durante y Después de un sismo.
+•  El diseño debe priorizar la lectura en dispositivos móviles a través de simbología normalizada e interfaces tabuladas.
+RF3.02 - Consulta de Historial Sísmico Regional:
+•  El sistema debe permitir a la población consultar el registro de sismos pasados filtrados por macrodistrito o municipio, visualizando la recurrencia sísmica histórica.
+RF3.03 - Módulo de Gestión de Contenidos Preventivos:
+•  El sistema debe proveer al Administrador una interfaz de mantenimiento dinámico (CMS) para crear, editar y actualizar los textos de las guías de prevención y los números del directorio de auxilio.
+Sprint 4: Evaluación de Daños y Reportes Ciudadanos (Grupo 18 - Parte A)
+RF4.01 - Captura de Reportes Ciudadanos de Intensidad:
+•  El sistema debe permitir a los usuarios autenticados reportar la percepción de un sismo mediante un formulario técnico.
+•  Capturará la ubicación vía API de geolocalización del dispositivo (con margen de tolerancia) o selección manual, y solicitará el nivel de intensidad mediante una adaptación normalizada de la Escala de Mercalli Modificada (MMI).
+RF4.02 - Auditoría y Validación de Reportes:
+•  El sistema debe facultar al Sismólogo para inspeccionar los reportes emitidos por la ciudadanía y asociarlos a un evento sísmico concreto.
+•  El sismólogo podrá dictaminar el estado del reporte como: "Validado", "Rechazado" o "Pendiente", retroalimentando la elaboración de mapas de intensidades observadas.
+Sprint 5: Gestión de Usuarios y Seguridad (Grupo 18 - Parte B)
+RF5.01 - Autenticación y Autorización de Usuarios:
+•  El sistema debe gestionar el registro y acceso seguro de usuarios validando la unicidad del correo electrónico institucional o personal, robustez de contraseñas y emisión de credenciales de sesión mediante tokens criptográficos (JWT).
+RF5.02 - Administración de Perfil de Usuario:
+•  El sistema debe permitir al usuario autenticado modificar sus datos personales, credenciales de acceso y administrar los macrodistritos configurados para la recepción de alertas.
+RF5.03 - Gobernanza de Cuentas y Asignación de Roles:
+•  El sistema debe permitir al Administrador habilitar o suspender cuentas y asignar perfiles técnicos (Sismólogo), registrando obligatoriamente la acreditación o licencia profesional para este último.
+Sprint 6: Análisis Estadístico y Telemetría (Grupo 14)
+RF6.01 - Generación y Exportación de Informes Estadísticos:
+•  El sistema debe procesar y consolidar indicadores de sismicidad para la región de La Paz, tales como frecuencia de eventos, distribución macrodistrital y magnitudes promedio.
+•  Dispondrá de funciones de exportación de consolidados en formatos estructurados PDF (reporte técnico imprimible), CSV y hojas de cálculo (XLSX).
+Sprint 7: Registro de Sismos y Monitoreo (Grupo 19)
+RF7.01 - Registro de Eventos Sísmicos:
+•  El sistema debe permitir al Sismólogo ingresar eventos al catálogo sísmico oficial, exigiendo fecha/hora de origen (UTC), hora local calculada, magnitud calculada, escala empleada, profundidad focal (Z en km) y coordenadas geodésicas en el sistema WGS 84.
+•  El sistema computará de forma automática la relación espacial de proximidad respecto a la ciudad de La Paz previo a la persistencia espacial en la base de datos PostGIS.
+RF7.02 – Monitoreo Técnico de Eventos Sísmicos:
+•	El sistema debe proporcionar al Sismólogo un panel técnico para monitorear los eventos sísmicos registrados en el catálogo.
+•	El panel deberá mostrar los eventos ordenados cronológicamente desde el más reciente al más antiguo, incluyendo como mínimo fecha/hora de origen, magnitud, escala empleada, profundidad focal, coordenadas geográficas, fuente de procedencia y estado del evento.
+•	El sistema deberá diferenciar los eventos mediante los estados “Pendiente”, “Revisado” y “Publicado”, permitiendo al Sismólogo acceder al detalle técnico de cada registro.
+RF7.03 – Revisión y Actualización de Eventos Sísmicos:
+•	El sistema debe permitir exclusivamente al usuario con rol Sismólogo revisar y actualizar la información técnica de los eventos sísmicos registrados.
+•	Se permitirá modificar magnitud, escala instrumental, profundidad focal, coordenadas geográficas y demás parámetros técnicos autorizados.
+•	Toda modificación deberá registrar automáticamente la fecha/hora de actualización y el usuario responsable del cambio.
+•	El sistema deberá conservar la trazabilidad de las actualizaciones efectuadas sobre cada evento sísmico.
+RF7.04 – Control de Procedencia y Duplicidad de Eventos Sísmicos
+•	El sistema debe controlar la procedencia de los datos sísmicos y prevenir el registro duplicado de un mismo evento dentro del catálogo.
+•	Cada evento deberá contar con un identificador interno único y, cuando corresponda, almacenar la fuente de procedencia y el identificador externo proporcionado por dicha fuente.
+•	Antes de persistir un nuevo evento, el sistema deberá verificar posibles coincidencias considerando fecha/hora, ubicación geográfica, magnitud y profundidad focal.
+•	En caso de detectar una posible duplicidad, el sistema deberá advertir al Sismólogo antes de confirmar el registro. 
+ESPECIFICACIÓN DE REQUISITOS NO FUNCIONALES (ISO/IEC 25010:2023)
+RNF01 - Eficiencia de Desempeño (Tiempos de Respuesta y Escalabilidad):
+•  La consulta de eventos sísmicos y la proyección inicial de marcadores en el visor cartográfico principal deben responder en un lapso no mayor a 1.5 segundos en condiciones operativas estándar.
+•  Ante picos de demanda derivados de eventos sísmicos perceptibles, la entrega de alertas activas mantendrá un tiempo de respuesta inferior a 800 milisegundos, sustentando una concurrencia mínima garantizada de 1.000 solicitudes concurrentes por segundo.
+RNF02 - Usabilidad y Adaptabilidad (Responsive Web Design):
+•  Las interfaces públicas críticas (visor cartográfico, alerta destacada, directorio de emergencia y formulario de reporte ciudadano) deben operar íntegramente en pantallas móviles a partir de resoluciones de 360 x 640 píxeles, cumpliendo con pautas de accesibilidad WCAG 2.1 Nivel AA.
+RNF03 - Seguridad y Protección de la Información:
+•  Las transferencias de datos entre cliente y servidor estarán cifradas bajo protocolo TLS 1.3 (HTTPS obligatorio).
+•  Las contraseñas serán tratadas con funciones criptográficas unidireccionales mediante Argon2id o Bcrypt con factor de coste no menor a 12.
+•  Las sesiones autenticadas operarán mediante tokens JWT firmados (algoritmos HMAC-SHA256 o RS256) con un periodo de expiración máximo de 60 minutos y listas de revocación en servidor.
+RNF04 - Fiabilidad (Disponibilidad Continua y Aislamiento de Fallos):
+•  La plataforma garantizará un factor de disponibilidad operativa no inferior al 99.9% anual en régimen ininterrumpido (24/7/365).
+•  El módulo de recepción de reportes ciudadanos operará con aislamiento transaccional respecto al núcleo de visualización cartográfica y emisión de alertas institucionales, asegurando que un fallo en la recolección de reportes no interrumpa la difusión de alertas.
+RNF05 - Mantenibilidad y Modularidad de Arquitectura:
+•  El código fuente responderá a un patrón de diseño desacoplado (Clean Architecture / App Router Server-Client Components).
+•  Las funciones geoespaciales deben residir nativamente en esquemas de base de datos PostgreSQL con extensión PostGIS, optimizando las consultas espaciales mediante índices espaciales R-Tree/GiST.
+RNF06 - Precisión Cartográfica e Integridad Geodésica:
+•  El sistema validará la consistencia geodésica de las geometrías en base al elipsoide WGS 84 (EPSG:4326), verificando los rangos de latitud [-90.0, 90.0] y longitud [-180.0, 180.0].
+•  Los reportes ciudadanos deberán almacenar obligatoriamente la estimación de error o incertidumbre horizontal del sensor GPS (en metros).
