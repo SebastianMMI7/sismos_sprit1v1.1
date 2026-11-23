@@ -34,7 +34,7 @@ const client = new Client({ connectionString: databaseUrl });
 await client.connect();
 try {
   await client.query(readFileSync(join(here, 'seed.sql'), 'utf8'));
-  const result = await client.query('SELECT count(*)::int AS events FROM seismic_events');
+  const result = await client.query('SELECT count(*)::int AS events FROM sismos');
   console.log(`Seed aplicado. Eventos en la base: ${result.rows[0].events}`);
 } finally {
   await client.end();

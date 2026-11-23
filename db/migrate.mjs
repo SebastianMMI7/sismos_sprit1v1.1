@@ -56,12 +56,13 @@ try {
   }
   const check = await client.query(`
     SELECT
-      (SELECT count(*)::int FROM pg_indexes
-        WHERE schemaname = 'public' AND indexname LIKE 'seismic_events_%') AS event_indexes,
-      (SELECT count(*)::int FROM pg_constraint
-        WHERE connamespace = 'public'::regnamespace AND conname LIKE 'seismic_events_%') AS event_constraints,
-      (SELECT count(*)::int FROM urban_reference_areas) AS urban_areas,
-      (SELECT count(*)::int FROM locations WHERE type = 'macrodistrito') AS macrodistritos
+      (SELECT count(*)::int FROM sismos) AS total_sismos,
+      (SELECT count(*)::int FROM municipios) AS total_municipios,
+      (SELECT count(*)::int FROM macrodistritos) AS total_macrodistritos,
+      (SELECT count(*)::int FROM tipos_magnitud) AS total_tipos_magnitud,
+      (SELECT count(*)::int FROM estados_sismo) AS total_estados_sismo,
+      (SELECT count(*)::int FROM fuentes_sismicas) AS total_fuentes_sismicas,
+      (SELECT count(*)::int FROM urban_reference_areas) AS urban_areas
   `);
   console.log('Verificación:', check.rows[0]);
 } finally {

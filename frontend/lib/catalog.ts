@@ -54,13 +54,39 @@ export function parseFilters(params: URLSearchParams): Filters {
 }
 
 const selectEvent = `
-  SELECT e.id, e.occurred_at, e.magnitude, e.magnitude_type, e.depth_km,
-    ST_Y(e.epicenter::geometry) AS latitude, ST_X(e.epicenter::geometry) AS longitude,
-    l.id AS location_id, l.name AS location_name, l.type AS location_type, e.source,
-    ST_Distance(e.epicenter, ST_SetSRID(ST_MakePoint(-68.1336, -16.4956), 4326)::geography) / 1000 AS distance_km,
-    ST_Distance(e.epicenter, urban.area) / 1000 AS urban_area_distance_km,
-    urban.name AS urban_area_name, urban.source AS urban_area_source
-  FROM seismic_events e LEFT JOIN locations l ON l.id = e.location_id
+  SELECT 
+    'demo-' || lpad(s.id_sismo::text, 3, '0') AS id,
+    s.fecha_hora_utc AS occurred_at,
+    s.magnitud AS magnitude,
+    tm.codigo AS magnitude_type,
+    s.profundidad_km AS depth_km,
+    s.latitud AS latitude,
+    s.longitud AS longitude,
+    COALESCE(
+      CASE WHEN md.id_macrodistrito IS NOT NULL THEN 
+        CASE WHEN LOWER(md.nombre) = 'centro' THEN 'zona-centro' ELSE LOWER(REPLACE(md.nombre, ' ', '-')) END
+      END,
+      CASE WHEN m.id_municipio IS NOT NULL THEN LOWER(REPLACE(m.nombre, ' ', '-')) END
+    ) AS location_id,
+    COALESCE(md.nombre, m.nombre) AS location_name,
+    CASE WHEN md.id_macrodistrito IS NOT NULL THEN 'macrodistrito' ELSE 'municipio' END AS location_type,
+    COALESCE(f.nombre, 'demo') AS source,
+    ST_Distance(
+      ST_SetSRID(ST_MakePoint(s.longitud, s.latitud), 4326)::geography,
+      ST_SetSRID(ST_MakePoint(-68.1336, -16.4956), 4326)::geography
+    ) / 1000 AS distance_km,
+    ST_Distance(
+      ST_SetSRID(ST_MakePoint(s.longitud, s.latitud), 4326)::geography,
+      urban.area
+    ) / 1000 AS urban_area_distance_km,
+    urban.name AS urban_area_name,
+    urban.source AS urban_area_source
+  FROM sismos s
+  LEFT JOIN tipos_magnitud tm ON tm.id_tipo_magnitud = s.id_tipo_magnitud
+  LEFT JOIN estados_sismo es ON es.id_estado_sismo = s.id_estado_sismo
+  LEFT JOIN macrodistritos md ON md.id_macrodistrito = s.id_macrodistrito
+  LEFT JOIN municipios m ON m.id_municipio = COALESCE(s.id_municipio, md.id_municipio)
+  LEFT JOIN fuentes_sismicas f ON f.id_fuente = s.id_fuente
   LEFT JOIN urban_reference_areas urban ON urban.id = 'la-paz'`;
 
 type EventRow = {
@@ -91,29 +117,45 @@ function eventFromRow(row: EventRow) {
 
 export async function getEvents(filters: Filters) {
   const values: (string | number)[] = [];
-  // El catálogo público se limita a La Paz. Los eventos sin ubicación asignada
-  // se conservan para no ocultar registros que aún no fueron clasificados.
-  const conditions: string[] = ["(l.department = 'La Paz' OR e.location_id IS NULL)"];
+  const conditions: string[] = ["(m.departamento = 'La Paz' OR s.id_municipio IS NULL)"];
   function add(condition: (position: number) => string, value: string | number) {
     values.push(value);
     conditions.push(condition(values.length));
   }
-  if (filters.location) add((i) => `e.location_id = $${i}`, filters.location);
-  // A calendar date is interpreted in Bolivia, then compared as a UTC instant.
-  if (filters.startDate) add((i) => `e.occurred_at >= ($${i}::date::timestamp AT TIME ZONE 'America/La_Paz')`, filters.startDate);
-  if (filters.endDate) add((i) => `e.occurred_at < (($${i}::date + 1)::timestamp AT TIME ZONE 'America/La_Paz')`, filters.endDate);
-  if (filters.minMagnitude !== undefined) add((i) => `e.magnitude >= $${i}`, filters.minMagnitude);
-  if (filters.maxMagnitude !== undefined) add((i) => `e.magnitude <= $${i}`, filters.maxMagnitude);
+  if (filters.location) {
+    add(
+      (i) => `(
+        LOWER(md.nombre) = LOWER($${i}) OR 
+        LOWER(m.nombre) = LOWER($${i}) OR 
+        'macrodistrito-' || md.id_macrodistrito = $${i} OR 
+        'municipio-' || m.id_municipio = $${i} OR
+        md.id_macrodistrito::text = $${i} OR
+        m.id_municipio::text = $${i} OR
+        REPLACE(LOWER(md.nombre), ' ', '-') = LOWER($${i}) OR
+        REPLACE(LOWER(m.nombre), ' ', '-') = LOWER($${i}) OR
+        (LOWER($${i}) = 'zona-centro' AND LOWER(md.nombre) = 'centro')
+      )`,
+      filters.location
+    );
+  }
+  if (filters.startDate) add((i) => `s.fecha_hora_utc >= ($${i}::date::timestamp AT TIME ZONE 'America/La_Paz')`, filters.startDate);
+  if (filters.endDate) add((i) => `s.fecha_hora_utc < (($${i}::date + 1)::timestamp AT TIME ZONE 'America/La_Paz')`, filters.endDate);
+  if (filters.minMagnitude !== undefined) add((i) => `s.magnitud >= $${i}`, filters.minMagnitude);
+  if (filters.maxMagnitude !== undefined) add((i) => `s.magnitud <= $${i}`, filters.maxMagnitude);
   const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
-  const order = ' ORDER BY e.occurred_at DESC, e.id DESC';
+  const order = ' ORDER BY s.fecha_hora_utc DESC, s.id_sismo DESC';
   const pool = getPool();
   const [count, events, mapEvents, recent] = await Promise.all([
-    pool.query(`SELECT count(*)::int AS total FROM seismic_events e LEFT JOIN locations l ON l.id = e.location_id${where}`, values),
+    pool.query(`SELECT count(*)::int AS total FROM sismos s
+      LEFT JOIN macrodistritos md ON md.id_macrodistrito = s.id_macrodistrito
+      LEFT JOIN municipios m ON m.id_municipio = COALESCE(s.id_municipio, md.id_municipio)${where}`, values),
     pool.query(`${selectEvent}${where}${order} LIMIT $${values.length + 1} OFFSET $${values.length + 2}`, [...values, filters.pageSize, (filters.page - 1) * filters.pageSize]),
     pool.query(`${selectEvent}${where}${order} LIMIT 5000`, values),
-    pool.query(`SELECT count(*) FILTER (WHERE e.occurred_at >= now() - interval '24 hours' AND e.occurred_at <= now())::int AS last_24,
-      count(*) FILTER (WHERE e.occurred_at >= now() - interval '48 hours' AND e.occurred_at <= now())::int AS last_48
-      FROM seismic_events e LEFT JOIN locations l ON l.id = e.location_id${where}`, values),
+    pool.query(`SELECT count(*) FILTER (WHERE s.fecha_hora_utc >= now() - interval '24 hours' AND s.fecha_hora_utc <= now())::int AS last_24,
+      count(*) FILTER (WHERE s.fecha_hora_utc >= now() - interval '48 hours' AND s.fecha_hora_utc <= now())::int AS last_48
+      FROM sismos s
+      LEFT JOIN macrodistritos md ON md.id_macrodistrito = s.id_macrodistrito
+      LEFT JOIN municipios m ON m.id_municipio = COALESCE(s.id_municipio, md.id_municipio)${where}`, values),
   ]);
   const total = Number(count.rows[0].total);
   return {
@@ -127,15 +169,32 @@ export async function getEvents(filters: Filters) {
 
 export async function getEvent(id: string) {
   const result = await getPool().query(
-    `${selectEvent} WHERE e.id = $1 AND (l.department = 'La Paz' OR e.location_id IS NULL)`,
+    `${selectEvent} WHERE (s.id_sismo::text = $1 OR 'demo-' || lpad(s.id_sismo::text, 3, '0') = $1)`,
     [id],
   );
   return result.rows[0] ? eventFromRow(result.rows[0]) : null;
 }
 
 export async function getLocations() {
-  const result = await getPool().query(
-    "SELECT id, name, type FROM locations WHERE department = 'La Paz' ORDER BY name ASC",
-  );
-  return result.rows;
+  const pool = getPool();
+  const [macrodistritos, municipios] = await Promise.all([
+    pool.query(`
+      SELECT 
+        CASE WHEN LOWER(nombre) = 'centro' THEN 'zona-centro' ELSE LOWER(REPLACE(nombre, ' ', '-')) END AS id, 
+        nombre AS name, 
+        'macrodistrito' AS type 
+      FROM macrodistritos 
+      ORDER BY nombre ASC
+    `),
+    pool.query(`
+      SELECT 
+        LOWER(REPLACE(nombre, ' ', '-')) AS id, 
+        nombre AS name, 
+        'municipio' AS type 
+      FROM municipios 
+      WHERE departamento = 'La Paz' 
+      ORDER BY nombre ASC
+    `)
+  ]);
+  return [...macrodistritos.rows, ...municipios.rows];
 }
